@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ZenTask – A beautiful, minimal task manager to organise your day with calm focus. Supports categories, priorities, and due dates." />
+  <title>ZenTask ✅ | Minimal Task Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-dot"></span>
+        <span class="brand-text">ZenTask</span>
+      </div>
+
+      <nav class="sidebar-nav" role="navigation" aria-label="Filter tasks">
+        <button class="nav-item active" data-filter="all" onclick="setFilter('all', this)" id="nav-all">
+          <span class="nav-icon">📋</span> All Tasks
+          <span class="nav-count" id="count-all">0</span>
+        </button>
+        <button class="nav-item" data-filter="today" onclick="setFilter('today', this)" id="nav-today">
+          <span class="nav-icon">☀️</span> Today
+          <span class="nav-count" id="count-today">0</span>
+        </button>
+        <button class="nav-item" data-filter="completed" onclick="setFilter('completed', this)" id="nav-completed">
+          <span class="nav-icon">✅</span> Completed
+          <span class="nav-count" id="count-completed">0</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-categories">
+        <p class="cat-label">Categories</p>
+        <button class="cat-item" data-cat="work" onclick="setFilter('cat:work', this)">
+          <span class="cat-dot cat-work"></span> Work
+        </button>
+        <button class="cat-item" data-cat="personal" onclick="setFilter('cat:personal', this)">
+          <span class="cat-dot cat-personal"></span> Personal
+        </button>
+        <button class="cat-item" data-cat="study" onclick="setFilter('cat:study', this)">
+          <span class="cat-dot cat-study"></span> Study
+        </button>
+        <button class="cat-item" data-cat="health" onclick="setFilter('cat:health', this)">
+          <span class="cat-dot cat-health"></span> Health
+        </button>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="clear-btn" onclick="clearCompleted()" id="clearBtn">
+          🗑️ Clear completed
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-area" role="main">
+      <!-- Top bar -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="menu-btn" onclick="toggleSidebar()" aria-label="Toggle menu" id="menuBtn">☰</button>
+          <div>
+            <h1 class="topbar-title" id="filterTitle">All Tasks</h1>
+            <p class="topbar-date" id="currentDate">—</p>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="progress-wrap" title="Completion rate">
+            <div class="progress-ring-container">
+              <svg class="progress-ring" width="50" height="50" viewBox="0 0 50 50">
+                <circle class="ring-bg" cx="25" cy="25" r="20" />
+                <circle class="ring-fill" id="ringFill" cx="25" cy="25" r="20"
+                        stroke-dasharray="125.66" stroke-dashoffset="125.66" />
+              </svg>
+              <span class="ring-pct" id="ringPct">0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add task bar -->
+      <div class="add-bar" id="addBar">
+        <div class="add-row">
+          <input type="text" id="taskInput" class="task-input" placeholder="What's on your mind?"
+                 maxlength="120" onkeydown="if(event.key==='Enter')addTask()" aria-label="New task text" />
+          <button class="add-btn" onclick="addTask()" id="addBtn" aria-label="Add task">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 5v14m-7-7h14"/>
+            </svg>
+          </button>
+        </div>
+        <div class="add-options">
+          <select id="taskCategory" class="opt-select" aria-label="Task category">
+            <option value="none">📁 Category</option>
+            <option value="work">💼 Work</option>
+            <option value="personal">🏠 Personal</option>
+            <option value="study">📚 Study</option>
+            <option value="health">❤️ Health</option>
+          </select>
+          <select id="taskPriority" class="opt-select" aria-label="Task priority">
+            <option value="medium">🟡 Medium</option>
+            <option value="high">🔴 High</option>
+            <option value="low">🟢 Low</option>
+          </select>
+          <input type="date" id="taskDue" class="opt-select opt-date" aria-label="Due date" />
+        </div>
+      </div>
+
+      <!-- Task list -->
+      <div id="taskList" class="task-list" role="list" aria-live="polite">
+        <!-- Tasks injected by JS -->
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyState" class="empty-state hidden">
+        <div class="empty-icon">🌿</div>
+        <p class="empty-title">All clear!</p>
+        <p class="empty-sub">Add a task above to get started.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Edit modal -->
+  <div id="editModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Edit task">
+    <div class="modal-box">
+      <h3 class="modal-title">Edit Task</h3>
+      <input type="text" id="editInput" class="task-input modal-input" maxlength="120" aria-label="Edit task text" />
+      <div class="modal-opts">
+        <select id="editCategory" class="opt-select" aria-label="Edit category">
+          <option value="none">📁 Category</option>
+          <option value="work">💼 Work</option>
+          <option value="personal">🏠 Personal</option>
+          <option value="study">📚 Study</option>
+          <option value="health">❤️ Health</option>
+        </select>
+        <select id="editPriority" class="opt-select" aria-label="Edit priority">
+          <option value="medium">🟡 Medium</option>
+          <option value="high">🔴 High</option>
+          <option value="low">🟢 Low</option>
+        </select>
+        <input type="date" id="editDue" class="opt-select opt-date" aria-label="Edit due date" />
+      </div>
+      <div class="modal-actions">
+        <button class="modal-save" onclick="saveEdit()" id="saveEditBtn">Save Changes</button>
+        <button class="modal-cancel" onclick="closeModal()" id="cancelEditBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
